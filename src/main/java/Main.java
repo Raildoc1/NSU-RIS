@@ -1,8 +1,9 @@
 import java.net.URISyntaxException;
 import java.util.Map;
-import javax.xml.bind.JAXBException;
+
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
-import persistance.model.Osm;
+import org.openstreetmap.osm._0.Osm;
 
 @Slf4j
 public class Main {

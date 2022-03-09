@@ -3,6 +3,10 @@ plugins {
     id 'application'
 }
 
+application {
+    mainClass = 'Main'
+}
+
 group 'org.example'
 version '1.0-SNAPSHOT'
 
@@ -10,7 +14,56 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    jaxb
+}
+
+task genJaxb {
+    ext.sourcesDir = "${buildDir}/generated-sources/jaxb"
+    ext.classesDir = "${buildDir}/classes/jaxb"
+    ext.schema = "${projectDir}/src/main/resources/xsd/OSMSchema.xsd"
+    outputs.dir classesDir
+
+    doLast() {
+        project.ant {
+            // Create output directories
+            mkdir(dir: sourcesDir)
+            mkdir(dir: classesDir)
+
+            taskdef name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.jaxb.asPath
+
+            xjc(destdir: sourcesDir, schema: schema) {
+                produces(dir: sourcesDir, includes: '**/*.java')
+            }
+
+            javac(destdir: classesDir, source: 1.8, target: 1.8, debug: true,
+                    debugLevel: 'lines,vars,source',
+                    includeantruntime: false,
+                    classpath: configurations.jaxb.asPath) {
+                src(path: sourcesDir)
+                include(name: '**/*.java')
+                include(name: '*.java')
+            }
+
+            copy(todir: classesDir) {
+                fileset(dir: sourcesDir, erroronmissingdir: false) {
+                    exclude(name: '**/*.java')
+                }
+            }
+        }
+    }
+}
+
 dependencies {
+    jaxb (
+            'com.sun.xml.bind:jaxb-xjc:3.0.2'
+    )
+    implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
+    implementation 'com.sun.xml.bind:jaxb-core:3.0.2'
+    implementation 'com.sun.xml.bind:jaxb-osgi:3.0.1'
+
+    implementation(files(genJaxb.classesDir).builtBy(genJaxb))
+
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor "org.projectlombok:lombok:1.18.22"
 
@@ -19,13 +72,11 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
     implementation 'org.apache.commons:commons-compress:1.21'
     implementation 'commons-cli:commons-cli:1.5.0'
-    implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-    implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
-    implementation 'com.sun.xml.bind:jaxb-core:3.0.2'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0-RC3'
+    implementation 'org.postgresql:postgresql:42.3.3'
 
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
 test {
