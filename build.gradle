@@ -1,13 +1,15 @@
 plugins {
-    id 'java'
+    id 'org.springframework.boot' version '2.6.4'
     id 'application'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
 }
 
 application {
-    mainClass = 'Main'
+    mainClass = 'Application'
 }
 
-group 'org.example'
+group 'nsu.gaiduk'
 version '1.0-SNAPSHOT'
 
 repositories {
@@ -66,23 +68,21 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor "org.projectlombok:lombok:1.18.22"
+    runtimeOnly 'org.postgresql:postgresql'
 
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.1'
     implementation 'org.apache.commons:commons-compress:1.21'
     implementation 'commons-cli:commons-cli:1.5.0'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0-RC3'
+    implementation 'jakarta.activation:jakarta.activation-api:2.1.0'
     implementation 'org.postgresql:postgresql:42.3.3'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.mapstruct:mapstruct:1.4.2.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
 }
 
 test {
     useJUnitPlatform()
-}
-
-application {
-    mainClass = 'Main'
 }
