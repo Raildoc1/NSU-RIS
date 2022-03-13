@@ -23,10 +23,10 @@ public class ApiController {
     private final WayService wayService;
     private final NodeService nodeService;
 
-    @RequestMapping("/")
-    public String home(){
-        return "Hello World!";
-    }
+//    @RequestMapping("/")
+//    public String home(){
+//        return "Hello World!";
+//    }
 
     @PostMapping(value = "/tag")
     public TagDto createTag(@RequestBody TagDto tagDto) {

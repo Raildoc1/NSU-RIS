@@ -43,6 +43,7 @@ public class ParsingService {
             int nodesAmount = 3000;
             List<Node> nodes = osm.getNode().subList(0, nodesAmount);
 
+            System.out.println("Nodes amount = " + nodes.size());
             System.out.print("Speed: ");
             long preparedStatementNanoTime = insertNodes(nodes);
             System.out.println(nodesAmount / (preparedStatementNanoTime / 1_000_000_000f) + " nodes per second");
