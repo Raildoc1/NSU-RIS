@@ -13,21 +13,41 @@ import lombok.extern.slf4j.Slf4j;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.stream.*;
+import javax.xml.stream.events.XMLEvent;
 import java.util.List;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import persistance.model.Osm;
+import persistance.model.Node;
 
 @Slf4j
 public class XmlHandler {
 
-    public Osm unmarshall(String filePath) throws JAXBException, URISyntaxException {
+    public ArrayList<Node> unmarshall(String filePath) throws JAXBException, URISyntaxException, XMLStreamException {
+        ArrayList<Node> result = new ArrayList<>();
         URI uri = Main.class.getClassLoader().getResource(filePath).toURI();
         File inputFile = new File(uri);
         try (BZip2CompressorInputStream inputStream = new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {
             log.debug("Unmarshalling...");
-            Unmarshaller unmarshaller = JAXBContext.newInstance(Osm.class).createUnmarshaller();
-            Osm result = (Osm) unmarshaller.unmarshal(inputStream);
+            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+            XMLEventReader eventReader = inputFactory.createXMLEventReader(inputStream);
+            Unmarshaller unmarshaller = JAXBContext.newInstance(Node.class).createUnmarshaller();
+            QName nodeName = new QName("node");
+
+            while(eventReader.hasNext()) {
+                XMLEvent event = eventReader.peek();
+                if(event.getEventType() != XMLStreamConstants.START_ELEMENT) {
+                    eventReader.nextEvent();
+                    continue;
+                }
+                if(!event.asStartElement().getName().equals(nodeName)) {
+                    eventReader.nextEvent();
+                    continue;
+                }
+                result.add(unmarshaller.unmarshal(eventReader, Node.class).getValue());
+                eventReader.nextEvent();
+            }
             log.debug("Unmarshall successful");
             return result;
         } catch (IOException e) {
@@ -36,17 +56,17 @@ public class XmlHandler {
         return null;
     }
 
-    public Map<String, Integer> getUserChanges(Osm result) {
+    public Map<String, Integer> getUserChanges(ArrayList<Node> nodes) {
         Map<String, Integer> userChanges = new HashMap<>();
-        result.getNode().forEach(node -> {
+        nodes.forEach(node -> {
             userChanges.put(node.getUser(), userChanges.getOrDefault(node.getUser(), 0) + 1);
         });
         return sortByValue(userChanges);
     }
 
-    public Map<String, Integer> getTagsCount(Osm result) {
+    public Map<String, Integer> getTagsCount(ArrayList<Node> nodes) {
         Map<String, Integer> tags = new HashMap<>();
-        result.getNode().forEach(node -> {
+        nodes.forEach(node -> {
             if (node.isTagged()) {
                 node.getTag().forEach(tag -> tags.put(tag.getK(), tags.getOrDefault(tag.getK(), 0) + 1));
             }
