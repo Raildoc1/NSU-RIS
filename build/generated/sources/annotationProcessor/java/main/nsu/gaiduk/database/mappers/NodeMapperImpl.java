@@ -14,7 +14,7 @@ import nsu.gaiduk.database.entities.TagEntity.TagEntityBuilder;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2022-03-13T17:48:13+0700",
+    date = "2022-04-06T21:09:42+0700",
     comments = "version: 1.4.2.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-7.1.jar, environment: Java 11.0.12 (Microsoft)"
 )
 public class NodeMapperImpl implements NodeMapper {

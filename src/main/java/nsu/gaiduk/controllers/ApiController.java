@@ -12,6 +12,7 @@ import nsu.gaiduk.services.WayService;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -96,6 +97,11 @@ public class ApiController {
     @GetMapping(value = "/node/{id}")
     public NodeDto getNode(@PathVariable BigInteger id) {
         return nodeService.get(id);
+    }
+
+    @GetMapping(value = "/node/{radius}/{lat}/{lon}")
+    public List<NodeDto> getNode(@PathVariable double radius, @PathVariable double lon, @PathVariable double lat) {
+        return nodeService.findInRadius(lat, lon, radius);
     }
 
     @PutMapping(value = "/node")
