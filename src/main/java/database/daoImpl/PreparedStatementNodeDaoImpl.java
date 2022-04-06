@@ -14,18 +14,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PreparedStatementNodeDaoImpl implements NodeDao {
     @Override
     public void insertNodes(List<Node> nodes) {
-        for (Node node : nodes) {
-            insertNode(node);
-        }
-    }
-
-    public void insertNode(Node node) {
         try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
-            String sql = "INSERT INTO node (id, lat, lon, username, uid, version, changeset, datestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING";
-            createPreparedStatement(connection, sql, node).executeUpdate();
+            System.out.println("inserting nodes...");
+            //connection.setAutoCommit(false);
+            for (Node node : nodes) {
+                insertNode(node, connection);
+            }
+            //connection.setAutoCommit(true);
+            System.out.println("nodes inserted successfully!");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void insertNode(Node node, Connection connection) throws SQLException {
+        String sql = "INSERT INTO node (id, lat, lon, username, uid, version, changeset, datestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING";
+        createPreparedStatement(connection, sql, node).executeUpdate();
     }
 
     private PreparedStatement createPreparedStatement(Connection connection, String sql, Node node) throws SQLException {

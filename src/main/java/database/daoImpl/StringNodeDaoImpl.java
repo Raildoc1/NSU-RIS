@@ -12,26 +12,30 @@ import java.util.List;
 public class StringNodeDaoImpl implements NodeDao {
     @Override
     public void insertNodes(List<Node> nodes) {
-        for (Node node : nodes) {
-            insertNode(node);
-        }
-    }
-
-    public void insertNode(Node node) {
         try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
-            String sql = "INSERT INTO node (id, lat, lon, username, uid, version, changeset, datestamp) VALUES (" +
-                    node.getId().intValue() + ", " +
-                    node.getLat() + "," +
-                    node.getLon() + ",'" +
-                    node.getUser() + "'," +
-                    node.getUid().intValue() + "," +
-                    node.getVersion().intValue() + "," +
-                    node.getChangeset().intValue() + ",'" +
-                    new Date(node.getTimestamp().toGregorianCalendar().getTime().getTime()).toLocalDate() + " +07')"
-                    + " ON CONFLICT DO NOTHING";
-            connection.createStatement().executeUpdate(sql);
+            System.out.println("inserting nodes...");
+            //connection.setAutoCommit(false);
+            for (Node node : nodes) {
+                insertNode(node, connection);
+            }
+            //connection.setAutoCommit(true);
+            System.out.println("nodes inserted successfully!");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void insertNode(Node node, Connection connection) throws SQLException {
+        String sql = "INSERT INTO node (id, lat, lon, username, uid, version, changeset, datestamp) VALUES (" +
+                node.getId().intValue() + ", " +
+                node.getLat() + "," +
+                node.getLon() + ",'" +
+                node.getUser() + "'," +
+                node.getUid().intValue() + "," +
+                node.getVersion().intValue() + "," +
+                node.getChangeset().intValue() + ",'" +
+                new Date(node.getTimestamp().toGregorianCalendar().getTime().getTime()).toLocalDate() + " +07')"
+                + " ON CONFLICT DO NOTHING";
+        connection.createStatement().executeUpdate(sql);
     }
 }

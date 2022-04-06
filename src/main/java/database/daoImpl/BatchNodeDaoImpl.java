@@ -12,6 +12,8 @@ public class BatchNodeDaoImpl implements NodeDao {
     @Override
     public void insertNodes(List<Node> nodes) {
         try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
+            System.out.println("inserting nodes...");
+            //connection.setAutoCommit(false);
             String sql = "INSERT INTO node (id, lat, lon, username, uid, version, changeset, datestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING";
             AtomicInteger count = new AtomicInteger();
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -27,7 +29,7 @@ public class BatchNodeDaoImpl implements NodeDao {
                     preparedStatement.setDate(8, new Date(node.getTimestamp().toGregorianCalendar().getTime().getTime()));
                     preparedStatement.addBatch();
                     count.getAndIncrement();
-                    if (count.intValue() == 10) {
+                    if (count.intValue() == 1000) {
                         preparedStatement.executeBatch();
                         preparedStatement = connection.prepareStatement(sql);
                         count.set(0);
@@ -39,6 +41,8 @@ public class BatchNodeDaoImpl implements NodeDao {
             if(preparedStatement != null) {
                 preparedStatement.executeBatch();
             }
+            //connection.setAutoCommit(true);
+            System.out.println("nodes inserted successfully!");
         } catch (SQLException e) {
             e.printStackTrace();
         }

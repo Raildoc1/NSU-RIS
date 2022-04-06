@@ -12,10 +12,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BatchTagDaoImpl implements TagDao {
-
     @Override
-    public void insertTags(List<Tag> tags) {
-        try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
+    public void insertTags(List<Tag> tags, Connection connection) {
+        try {
             String sql = "INSERT INTO tag (k, v) VALUES (?, ?) ON CONFLICT DO NOTHING";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             AtomicInteger count = new AtomicInteger();
@@ -25,7 +24,7 @@ public class BatchTagDaoImpl implements TagDao {
                     preparedStatement.setString(2, tag.getV());
                     preparedStatement.addBatch();
                     count.getAndIncrement();
-                    if (count.intValue() >= 10) {
+                    if (count.intValue() >= 1000) {
                         preparedStatement.executeBatch();
                         preparedStatement = connection.prepareStatement(sql);
                         count.set(0);
@@ -41,8 +40,8 @@ public class BatchTagDaoImpl implements TagDao {
     }
 
     @Override
-    public void insertTagsToNode(List<Tag> tags, BigInteger nodeId) {
-        try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
+    public void insertTagsToNode(List<Tag> tags, BigInteger nodeId, Connection connection) {
+        try {
             String sql = "INSERT INTO node_tag (node_id, tag_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
             AtomicInteger count = new AtomicInteger();
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -52,7 +51,7 @@ public class BatchTagDaoImpl implements TagDao {
                     preparedStatement.setString(2, tag.getK());
                     preparedStatement.addBatch();
                     count.getAndIncrement();
-                    if (count.intValue() >= 10) {
+                    if (count.intValue() >= 1000) {
                         preparedStatement.executeBatch();
                         preparedStatement = connection.prepareStatement(sql);
                         count.set(0);

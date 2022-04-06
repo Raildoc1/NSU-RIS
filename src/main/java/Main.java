@@ -40,25 +40,39 @@ public class Main {
 
         DatabaseConnector databaseConnector = DatabaseConnector.getInstance();
 
-        System.out.print("Prepared Statement Speed: ");
-        long preparedStatementNanoTime = insertNodes(databaseConnector, new NodeLoader(new PreparedStatementNodeDaoImpl(), new PreparedStatementTagDaoImpl()), nodes);
-        System.out.println(nodesAmount / (preparedStatementNanoTime / 1_000_000_000f) + " nodes per second");
-        System.out.println("Nano time = " + preparedStatementNanoTime);
+        // 317.8347 nodes per second
+        try(Connection connection = databaseConnector.getPostgresConnection()) {
+            System.out.print("Prepared Statement Speed: ");
+            long preparedStatementNanoTime = insertNodes(databaseConnector, new NodeLoader(new PreparedStatementNodeDaoImpl(), new PreparedStatementTagDaoImpl(), connection), nodes);
+            System.out.println(nodesAmount / (preparedStatementNanoTime / 1_000_000_000f) + " nodes per second");
+            System.out.println("Nano time = " + preparedStatementNanoTime);
+            System.out.println("");
+        }
 
-        System.out.print("String Command Speed: ");
-        long stringNanoTime = insertNodes(databaseConnector, new NodeLoader(new StringNodeDaoImpl(), new StringTagDaoImpl()), nodes);
-        System.out.println(nodesAmount / (stringNanoTime / 1_000_000_000f) + " nodes per second");
-        System.out.println("Nano time = " + stringNanoTime);
+        // 338.72943 nodes per second
+        try(Connection connection = databaseConnector.getPostgresConnection()) {
+            System.out.print("String Command Speed: ");
+            long stringNanoTime = insertNodes(databaseConnector, new NodeLoader(new StringNodeDaoImpl(), new StringTagDaoImpl(), connection), nodes);
+            System.out.println(nodesAmount / (stringNanoTime / 1_000_000_000f) + " nodes per second");
+            System.out.println("Nano time = " + stringNanoTime);
+            System.out.println("");
+        }
 
-        System.out.print("Batch Speed: ");
-        long batchNanoTime = insertNodes(databaseConnector, new NodeLoader(new BatchNodeDaoImpl(), new BatchTagDaoImpl()), nodes);
-        System.out.println(nodesAmount / (batchNanoTime / 1_000_000_000f) + " nodes per second");
-        System.out.println("Nano time = " + batchNanoTime);
+        // 9523.994 nodes per second
+        try(Connection connection = databaseConnector.getPostgresConnection()) {
+            System.out.print("Batch Speed: ");
+            long batchNanoTime = insertNodes(databaseConnector, new NodeLoader(new BatchNodeDaoImpl(), new BatchTagDaoImpl(), connection), nodes);
+            System.out.println(nodesAmount / (batchNanoTime / 1_000_000_000f) + " nodes per second");
+            System.out.println("Nano time = " + batchNanoTime);
+            System.out.println("");
+        }
     }
 
     public static long insertNodes(DatabaseConnector databaseConnector, NodeLoader loader, List<Node> nodes) throws SQLException {
+        System.out.print("Deploying database...");
         databaseConnector.deployDatabase();
         long time = System.nanoTime();
+        System.out.print("Loading database...");
         loader.load(nodes);
         return System.nanoTime() - time;
     }
