@@ -5,6 +5,7 @@ import nsu.gaiduk.database.dto.NodeDto;
 import nsu.gaiduk.database.dto.RelationDto;
 import nsu.gaiduk.database.dto.TagDto;
 import nsu.gaiduk.database.dto.WayDto;
+import nsu.gaiduk.database.entities.NodeEntity;
 import nsu.gaiduk.services.NodeService;
 import nsu.gaiduk.services.RelationService;
 import nsu.gaiduk.services.TagService;
@@ -99,8 +100,8 @@ public class ApiController {
         return nodeService.get(id);
     }
 
-    @GetMapping(value = "/node/{radius}/{lat}/{lon}")
-    public List<NodeDto> getNode(@PathVariable double radius, @PathVariable double lon, @PathVariable double lat) {
+    @GetMapping(value = "/node/radius")
+    public List<NodeEntity> getNode(@RequestParam("r") Double radius, @RequestParam("lon") Double lon, @RequestParam("lat") Double lat) {
         return nodeService.findInRadius(lat, lon, radius);
     }
 

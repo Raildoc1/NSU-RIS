@@ -20,21 +20,8 @@ public class NodeService {
         return NodeMapper.INSTANCE.toDto(repository.findById(k).orElse(null));
     }
 
-    public List<NodeDto> findInRadius(double lat, double lon, double radius) {
-        List<NodeDto> result = new ArrayList<>();
-        List<NodeEntity> entities = repository.findAll();
-
-        for (NodeEntity e : entities) {
-            double v1 = e.getLat() - lat;
-            double v2 = e.getLon() - lon;
-            double r2 = radius * radius;
-
-            if(v1 * v1 + v2 * v2 > r2) {
-                continue;
-            }
-            result.add(NodeMapper.INSTANCE.toDto(e));
-        }
-        return result;
+    public List<NodeEntity> findInRadius(double lat, double lon, double radius) {
+        return repository.findAllNodesInRadius(lat, lon, radius);
     }
 
     public NodeDto create(NodeDto dto) {

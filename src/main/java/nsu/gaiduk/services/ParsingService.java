@@ -9,8 +9,10 @@ import org.openstreetmap.osm._0.Osm;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.xml.stream.XMLStreamException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,10 +27,10 @@ public class ParsingService {
     private void setup() {
         try {
             XmlHandler xmlHandler = new XmlHandler();
-            Osm osm = xmlHandler.unmarshall("compressed/RU-NVS.osm.bz2");
+            ArrayList<Node> allNodes = xmlHandler.unmarshall("compressed/RU-NVS.osm.bz2");
 
-            Map<String, Integer> userChanges = xmlHandler.getUserChanges(osm);
-            Map<String, Integer> tagsCount = xmlHandler.getTagsCount(osm);
+            Map<String, Integer> userChanges = xmlHandler.getUserChanges(allNodes);
+            Map<String, Integer> tagsCount = xmlHandler.getTagsCount(allNodes);
 
             log.info("---------------------------------------------------------------------------");
             log.info(String.format("%1$45s %2$20s", "User Name", "Changes Amount"));
@@ -41,14 +43,14 @@ public class ParsingService {
             log.info("---------------------------------------------------------------------------");
 
             int nodesAmount = 3000;
-            List<Node> nodes = osm.getNode().subList(0, nodesAmount);
+            List<Node> nodes = allNodes.subList(0, nodesAmount);
 
             System.out.println("Nodes amount = " + nodes.size());
             System.out.print("Speed: ");
             long preparedStatementNanoTime = insertNodes(nodes);
             System.out.println(nodesAmount / (preparedStatementNanoTime / 1_000_000_000f) + " nodes per second");
             System.out.println("Nano time = " + preparedStatementNanoTime);
-        } catch (JAXBException | URISyntaxException | SQLException e) {
+        } catch (JAXBException | URISyntaxException | SQLException | XMLStreamException e) {
             log.error("Exception occurred: {}", e.getMessage());
         }
     }

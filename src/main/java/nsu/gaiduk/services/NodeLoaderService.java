@@ -7,8 +7,11 @@ import nsu.gaiduk.database.repositories.NodeRepository;
 import nsu.gaiduk.database.repositories.TagRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class NodeLoaderService {
     private final NodeRepository nodeRepository;
