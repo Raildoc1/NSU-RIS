@@ -26,13 +26,14 @@ public class NodeLoader implements IDataLoader<Node>{
     public void load(List<Node> nodes) {
         try {
             connection.setAutoCommit(false);
-            nodeDao.insertNodes(nodes);
-            connection.commit();
+            nodeDao.insertNodes(nodes, connection);
+            tagDao.initialize(connection);
             for (Node node : nodes) {
                 List<Tag> tags = node.getTag();
-                tagDao.insertTags(tags, connection);
-                tagDao.insertTagsToNode(tags, node.getId(), connection);
+                tagDao.insertTags(tags);
+                tagDao.insertTagsToNode(tags, node.getId());
             }
+            tagDao.close();
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();

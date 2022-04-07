@@ -1,6 +1,5 @@
 package database.daoImpl;
 
-import database.DatabaseConnector;
 import database.dao.TagDao;
 import org.openstreetmap.osm._0.Tag;
 
@@ -9,60 +8,76 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class BatchTagDaoImpl implements TagDao {
+    private PreparedStatement insertTagPreparedStatement = null;
+    private PreparedStatement insertTagToNodePreparedStatement = null;
+
     @Override
-    public void insertTags(List<Tag> tags, Connection connection) {
+    public void initialize(Connection connection) {
         try {
             String sql = "INSERT INTO tag (k, v) VALUES (?, ?) ON CONFLICT DO NOTHING";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            AtomicInteger count = new AtomicInteger();
-            for (Tag tag : tags) {
-                try {
-                    preparedStatement.setString(1, tag.getK());
-                    preparedStatement.setString(2, tag.getV());
-                    preparedStatement.addBatch();
-                    count.getAndIncrement();
-                    if (count.intValue() >= 1000) {
-                        preparedStatement.executeBatch();
-                        preparedStatement = connection.prepareStatement(sql);
-                        count.set(0);
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            preparedStatement.executeBatch();
+            insertTagPreparedStatement = connection.prepareStatement(sql);
+            sql = "INSERT INTO node_tag (node_id, tag_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
+            insertTagToNodePreparedStatement = connection.prepareStatement(sql);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void insertTagsToNode(List<Tag> tags, BigInteger nodeId, Connection connection) {
+    public void close() {
         try {
-            String sql = "INSERT INTO node_tag (node_id, tag_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
-            AtomicInteger count = new AtomicInteger();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            insertTagPreparedStatement.close();
+            insertTagToNodePreparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void insertTags(List<Tag> tags) {
+        try {
+            int currentBatchSize = 0;
             for (Tag tag : tags) {
                 try {
-                    preparedStatement.setInt(1, nodeId.intValue());
-                    preparedStatement.setString(2, tag.getK());
-                    preparedStatement.addBatch();
-                    count.getAndIncrement();
-                    if (count.intValue() >= 1000) {
-                        preparedStatement.executeBatch();
-                        preparedStatement = connection.prepareStatement(sql);
-                        count.set(0);
+                    insertTagPreparedStatement.setString(1, tag.getK());
+                    insertTagPreparedStatement.setString(2, tag.getV());
+                    insertTagPreparedStatement.addBatch();
+                    currentBatchSize++;
+                    if (currentBatchSize >= 1000) {
+                        insertTagPreparedStatement.executeBatch();
+                        currentBatchSize = 0;
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
-            if(preparedStatement != null) {
-                preparedStatement.executeBatch();
+            insertTagPreparedStatement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void insertTagsToNode(List<Tag> tags, BigInteger nodeId) {
+        try {
+            int currentBatchSize = 0;
+            for (Tag tag : tags) {
+                try {
+                    insertTagToNodePreparedStatement.setInt(1, nodeId.intValue());
+                    insertTagToNodePreparedStatement.setString(2, tag.getK());
+                    insertTagToNodePreparedStatement.addBatch();
+                    currentBatchSize++;
+                    if (currentBatchSize >= 1000) {
+                        insertTagToNodePreparedStatement.executeBatch();
+                        currentBatchSize = 0;
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
+            insertTagToNodePreparedStatement.executeBatch();
         } catch (SQLException e) {
             e.printStackTrace();
         }

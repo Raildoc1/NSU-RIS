@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.util.List;
 
 public interface TagDao {
-    void insertTags(List<Tag> tags, Connection connection);
-    void insertTagsToNode(List<Tag> tags, BigInteger nodeId, Connection connection);
+    void initialize(Connection connection);
+    void close();
+    void insertTags(List<Tag> tags);
+    void insertTagsToNode(List<Tag> tags, BigInteger nodeId);
 }

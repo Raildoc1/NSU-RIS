@@ -7,18 +7,20 @@ import org.openstreetmap.osm._0.Node;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 public class StringNodeDaoImpl implements NodeDao {
+    Statement statement;
+
     @Override
-    public void insertNodes(List<Node> nodes) {
-        try (Connection connection = DatabaseConnector.getInstance().getPostgresConnection()) {
+    public void insertNodes(List<Node> nodes, Connection connection) {
+        try {
             System.out.println("inserting nodes...");
-            //connection.setAutoCommit(false);
+            statement = connection.createStatement();
             for (Node node : nodes) {
                 insertNode(node, connection);
             }
-            //connection.setAutoCommit(true);
             System.out.println("nodes inserted successfully!");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -36,6 +38,6 @@ public class StringNodeDaoImpl implements NodeDao {
                 node.getChangeset().intValue() + ",'" +
                 new Date(node.getTimestamp().toGregorianCalendar().getTime().getTime()).toLocalDate() + " +07')"
                 + " ON CONFLICT DO NOTHING";
-        connection.createStatement().executeUpdate(sql);
+        statement.executeUpdate(sql);
     }
 }
